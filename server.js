@@ -1,32 +1,36 @@
-// import express , dotenv , database
+// backend/server.js
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
 
-require("dotenv").config();
-const express  = require("express");
-const mongoose = require("mongoose"); 
+// Load env variables
+dotenv.config();
 
+// Connect Database
+connectDB();
 
-// Middleware to handle Json Data
 const app = express();
 
-app.use(express.json())
+// Middleware
+app.use(express.json()); // Parse JSON body
+app.use(cors()); // Enable CORS for frontend requests
 
+// Routes
+app.use("/api/auth", require("./routes/auth"));
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err =>  console.error("❌ MongoDB Connection Failed:", err));
-
-
-// import router
-const authRoutes = require("./routes/auth");
-
+// Health check route
 app.get("/", (req, res) => {
-  res.send("Server is working ✅");
+  res.send("🚀 API is running...");
+  
 });
 
 
-app.use("/api/auth" , authRoutes);
 
+// Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
+
+

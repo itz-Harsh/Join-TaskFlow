@@ -3,33 +3,52 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const router = express.Router();
 
 
 
-// REGISTER
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const salt = await bcrypt.genSalt(10);   // ✅ FIXED
+    // hash password
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // create new user
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
     });
 
+
+
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    console.log(token);
+    res.status(201).json({
+      message: "User Registered Successfully ✅",
+      token, // ✅ send token so frontend can auto login
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+      },
+    });
     await newUser.save();
 
-    res.status(201).json({ message: "User Registered Successfully ✅" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
