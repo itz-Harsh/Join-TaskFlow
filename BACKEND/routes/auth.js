@@ -15,7 +15,7 @@ const router = express.Router();
 //  Send OTP 
 router.post("/send-otp", async (req, res) => {
   try {
-    const { username , email } = req.body;
+    const { firstname , email } = req.body;
     // console.log(email)
     if (!email) return res.status(400).json({ message: "Email is required" });
 
@@ -45,7 +45,7 @@ router.post("/send-otp", async (req, res) => {
       html: `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
       <h2 style="color: #4a61e2ff;">Verify!</h2>
-      <h3>Hello, ${username}</h3>
+      <h3>Hello, ${firstname}</h3>
       <p>You're just one step away from completing your signup.</p>
       <p>Your <strong>One-Time Password (OTP)</strong> is:</p>
       <h1 style="color: #e91e40ff;">${otp}</h1>
@@ -69,7 +69,7 @@ router.post("/send-otp", async (req, res) => {
 // ===== Signup =====
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password, otp } = req.body;
+    const { firstname , lastname , username, email, password, otp } = req.body;
 
     if (!otp || otp.trim() === "")
       return res.status(400).json({ message: "OTP is required" });
@@ -90,6 +90,8 @@ router.post("/signup", async (req, res) => {
 
     // Create user
     const newUser = new User({
+      firstname,
+      lastname,
       username,
       email,
       password: hashedPassword,

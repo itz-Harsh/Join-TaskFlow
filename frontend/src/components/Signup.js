@@ -3,6 +3,8 @@ import API from "../api"; // make sure API is axios instance or import axios
 
 function Signup() {
   const [form, setForm] = useState({
+    firstname: "",
+    lastname: "",
     username: "",
     email: "",
     password: "",
@@ -47,6 +49,7 @@ function Signup() {
       console.log(res.data);
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
+        console.log(message)
         window.location.reload();
       }
     } catch (err) {
@@ -56,9 +59,22 @@ function Signup() {
   };
 
 return (
-  <div className="signup">
+  <div className="signup bg-purple-900">
     <h1>Signup</h1>
     <form onSubmit={handleSubmit}>
+      <input
+        name="firstname"
+        placeholder="First Name"
+        value={form.firstname}
+        onChange={handleChange}
+        required
+      /><input
+        name="lastname"
+        placeholder="Last Name"
+        value={form.lastname}
+        onChange={handleChange}
+        required
+      />
       <input
         name="username"
         placeholder="Username"
