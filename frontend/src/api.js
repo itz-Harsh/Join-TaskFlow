@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-    // baseURL: "http://localhost:5000/api/auth"
+    // baseURL: "http://localhost:5000/api/auth",
     baseURL: "https://to-do-list-1d7v.onrender.com/api/auth",
     // Backend URL (base for auth endpoints)
     

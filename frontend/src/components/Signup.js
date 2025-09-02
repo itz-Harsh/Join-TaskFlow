@@ -44,7 +44,7 @@ function Signup() {
     try {
       const res = await API.post("/signup", form);
       setMessage(res.data.message);
-
+      console.log(res.data);
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
         window.location.reload();
@@ -55,57 +55,58 @@ function Signup() {
     }
   };
 
-  return (
-    <div>
-      <h1>Signup</h1>
-      <form onSubmit={handleSubmit}>
+return (
+  <div className="signup">
+    <h1>Signup</h1>
+    <form onSubmit={handleSubmit}>
+      <input
+        name="username"
+        placeholder="Username"
+        value={form.username}
+        onChange={handleChange}
+        required
+      />
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={handleChange}
+        required
+      />
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        value={form.password}
+        onChange={handleChange}
+        required
+      />
+
+      {otpSent && (
         <input
-          name="username"
-          placeholder="Username"
-          value={form.username}
+          type="text"
+          name="otp"
+          placeholder="Enter OTP"
+          value={form.otp}
           onChange={handleChange}
           required
         />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+      )}
 
-        {otpSent && (
-          <input
-            type="text"
-            name="otp"
-            placeholder="Enter OTP"
-            value={form.otp}
-            onChange={handleChange}
-            required
-          />
-        )}
-
-        {!otpSent ? (
-          <button type="button" onClick={sendOtp}>
-            Send OTP
-          </button>
-        ) : (
-          <button type="submit">Signup</button>
-        )}
-      </form>
-
-      <p>{message}</p>
-    </div>
-  );
+      {!otpSent ? (
+        <button type="button" onClick={sendOtp}>
+          Send OTP
+        </button>
+      ) : (
+        <button type="submit">Signup</button>
+      )}
+    </form>
+    <p>
+      Already have an account? <span>Login</span>
+    </p>
+  </div>
+);
 }
 
 export default Signup;
