@@ -9,7 +9,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await API.get(`http://localhost:5000/api/auth/me`);
+        const res = await API.get(`/me`);
         setUser(res.data);
       } catch (err) {
         setUser({ error: "Not Authorized" });

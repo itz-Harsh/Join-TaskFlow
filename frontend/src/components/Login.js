@@ -17,7 +17,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post("http://localhost:5000/api/auth/login", form);
+      const res = await API.post("/login", form);
       localStorage.setItem("token", res.data.token);
       setMessage(res.data.message);
       navigate("/profile");

@@ -1,9 +1,12 @@
-// backend/server.js
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const connectDB = require("./config/db");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
 
+// Import routes
+import authRoutes from "./routes/auth.js";
+
+// Import MongoDB connection
+import connectDB from "./config/db.js";
 // Load env variables
 dotenv.config();
 
@@ -17,7 +20,7 @@ app.use(express.json()); // Parse JSON body
 app.use(cors()); // Enable CORS for frontend requests
 
 // Routes
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/auth", authRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
