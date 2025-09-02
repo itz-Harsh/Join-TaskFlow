@@ -9,7 +9,7 @@ function App() {
   return (
     <Router>
       <nav>
-        <Link to="/signup">Signup</Link>
+        <Link to={"/signup" && "/" }>Signup</Link>
         <Link to="/login">Login</Link>
         <Link to="/profile">Profile</Link>
       </nav>
@@ -17,7 +17,7 @@ function App() {
       <Routes>
         {/* If not authenticated, show Signup/Login, else redirect to /profile */}
         <Route
-          path="/signup"
+          path={"/signup" && "/" }
           element={!isAuthenticate ? <Signup /> : <Navigate to="/profile" replace />}
         />
         <Route

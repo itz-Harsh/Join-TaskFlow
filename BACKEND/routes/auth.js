@@ -39,10 +39,24 @@ router.post("/send-otp", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: process.env.USER,
+      from: `Verification <${process.env.USER}>`,
       to: email,
-      subject: "Signup OTP",
-      text: `Dear ${username} \nYour OTP is \n${otp}. It is valid for 5 minutes.`,
+      subject: "Your One-Time Password (OTP) for Signup",
+      html: `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+      <h2 style="color: #4a61e2ff;">Verify!</h2>
+      <h3>Hello, ${username}</h3>
+      <p>You're just one step away from completing your signup.</p>
+      <p>Your <strong>One-Time Password (OTP)</strong> is:</p>
+      <h1 style="color: #e91e40ff;">${otp}</h1>
+      <p>This OTP is <strong>valid for 5 minutes</strong>. Please do not share it with anyone.</p>
+      <p>If you did not request this OTP, please ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #eee;" />
+      <p style="font-size: 12px; color: #999;">
+        &copy; ${new Date().getFullYear()} Made with ❤️ by <strong>Harsh</strong>
+      </p>
+    </div>
+  `,
     });
 
     res.json({ message: "OTP sent successfully ✅" });
