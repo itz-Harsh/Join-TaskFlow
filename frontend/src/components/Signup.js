@@ -57,7 +57,7 @@ function Signup() {
       setMessage(err.response?.data?.message || "Error during signup");
     }
   };
-
+  
 return (
   <div className="signup bg-purple-900">
     <h1>Signup</h1>
