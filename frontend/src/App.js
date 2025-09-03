@@ -1,8 +1,10 @@
-import { BrowserRouter as Router, Route, Routes, Link, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
 import Home from "./components/Home";
+import "./index.css";
+import Verify from "./components/Verify";
 
 function App() {
   const isAuthenticate = !!localStorage.getItem("token");
@@ -20,6 +22,7 @@ function App() {
           path={"/signup" }
           element={!isAuthenticate ? <Signup /> : <Navigate to="/" />}
         />
+        <Route path="/verify" element={<Verify />} />
 
         <Route
           path="/login"
@@ -27,7 +30,7 @@ function App() {
         />
 
         <Route path="/"
-          element={isAuthenticate ? <Home /> : <Navigate to="/login" />}
+          element={<Home />}
           />
 
         <Route
