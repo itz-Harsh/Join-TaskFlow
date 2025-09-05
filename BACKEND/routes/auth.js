@@ -45,50 +45,97 @@ const SendMail = async (firstname, email, otp) => {
 // ===== Forgot Password (Send OTP) =====
 router.post("/forgot", async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: "Email and new password are required" });
+    }
 
-    const existingUser = await User.findOne({ email });
-    if (!existingUser) return res.status(400).json({ message: "User not found" });
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    // Save OTP for password reset
-    await Otp.findOneAndUpdate(
-      { email },
-      { otp, otpExpire: Date.now() + 5 * 60 * 1000 },
-      { upsert: true, new: true }
-    );
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await SendMail(existingUser.firstname, email, otp);
+    user.password = hashedPassword;
+    await user.save();
+    // remove used OTP to prevent reuse
+    await Otp.deleteOne({ email });
 
-    res.json({ message: "Password reset OTP sent ✅" });
-  } catch (err) {
+    // create auth token so user is auto-logged-in after password reset
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.json({
+      message: "Password updated successfully ✅",
+      token,
+      user: { id: user._id, email: user.email, username: user.username },
+    });
+    }
+    
+   catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to process request" });
+    res.status(500).json({ error: "Failed to update Password" });
   }
 });
 
 // ===== Signup OTP Verification =====
 router.post("/verify", async (req, res) => {
+  // Mode: true => signup flow, false => forgot-password flow
   try {
-    const { firstname, email } = req.body;
+  const rawMode = req.body.Mode;
+  // Default to signup mode if Mode not provided. Accept boolean or string ('true'/'false').
+  const Mode = rawMode === undefined ? true : (rawMode === true || rawMode === 'true');
+
+    const email = req.body.email;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Upsert OTP record
     await Otp.findOneAndUpdate(
       { email },
       { otp, otpExpire: Date.now() + 5 * 60 * 1000 },
       { upsert: true, new: true }
     );
 
-    await SendMail(firstname, email, otp);
-
-    res.json({ message: "OTP sent successfully ✅" });
+    if (Mode) {
+      // Signup
+      const firstname = req.body.firstname || "User";
+      await SendMail(firstname, email, otp);
+      return res.json({ message: "OTP sent for signup" });
+    } else {
+      // Forget password
+      const user = await User.findOne({ email });
+      const firstname = req.body.firstname || user?.firstname || "User";
+      await SendMail(firstname, email, otp);
+      return res.json({ message: "OTP sent for password reset" });
+    }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to send OTP" });
+    return res.status(500).json({ error: "Failed to send OTP" });
+  }
+});
+
+// ===== Check OTP (validate without performing any action) =====
+router.post("/check-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required" });
+
+    const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord) return res.status(400).json({ message: "OTP not found" });
+
+    if (otpRecord.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (Date.now() > otpRecord.otpExpire) return res.status(400).json({ message: "OTP expired" });
+
+    return res.json({ message: "OTP valid" });
+  } catch (err) {
+    console.error("Check OTP failed:", err);
+    return res.status(500).json({ message: "Failed to verify OTP" });
   }
 });
 
@@ -102,7 +149,7 @@ router.post("/signup", async (req, res) => {
 
     const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) return res.status(400).json({ message: "OTP not found" });
-    if (otpRecord.otp !== otp || Date.now() > otpRecord.otpExpire)
+  if (otpRecord.otp !== otp || Date.now() > otpRecord.otpExpire)
       return res.status(400).json({ message: "Invalid or expired OTP" });
 
     const existingUser = await User.findOne({ email });
@@ -176,5 +223,23 @@ router.get("/me", auth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user" });
   }
 });
+
+
+
+
+router.post("/exist", async (req, res) => {
+  try {
+    const { email, username } = req.body;
+
+    const emailExists = email ? await User.exists({ email }) : false;
+    const usernameExists = username ? await User.exists({ username }) : false;
+
+    return res.json({ emailExists: Boolean(emailExists), usernameExists: Boolean(usernameExists) });
+  } catch (e) {
+    console.error("Error checking existence:", e);
+    return res.status(500).json({ message: "Error checking existence" });
+  }
+});
+
 
 export default router;

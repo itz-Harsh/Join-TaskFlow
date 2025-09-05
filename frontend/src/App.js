@@ -3,8 +3,7 @@ import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Profile from "./components/Profile";
 import Home from "./components/Home";
-import "./index.css";
-import Verify from "./components/Verify";
+import Forget from "./components/Forget";
 
 function App() {
   const isAuthenticate = !!localStorage.getItem("token");
@@ -22,13 +21,16 @@ function App() {
           path={"/signup" }
           element={!isAuthenticate ? <Signup /> : <Navigate to="/" />}
         />
-        <Route path="/verify" element={<Verify />} />
+
 
         <Route
           path="/login"
           element={!isAuthenticate ? <Login /> : <Navigate to="/" />}
         />
-
+        <Route
+          path="/forget"
+          element={!isAuthenticate ? <Forget /> : <Navigate to="/" />}
+        />
         <Route path="/"
           element={<Home />}
           />

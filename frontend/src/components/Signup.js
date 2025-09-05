@@ -1,37 +1,99 @@
 import React, { useState } from "react";
 import API from "../api";
 import {  useNavigate } from "react-router-dom";
+import checkIcon from "../assets/check.png";
+import uncheckIcon from "../assets/uncheck.png";
 
 function Signup() {
   const navigate = useNavigate();
+  const [email , setEmail] = useState(false);
+  const [user , setUser] = useState(false);
+  const [step, setStep] = useState("email");
+  
   const [form, setForm] = useState({
     firstname: "",
     lastname: "",
     username: "",
     email: "",
     password: "",
+    otp: ""
   });
   const [message, setMessage] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = async(e) => {
+    const { name, value } = e.target;
+
+    // live existence check only for email/username
+    if (name === "email" || name === "username") {
+      if (!value.trim()) {
+        if (name === "email") setEmail(false);
+        else setUser(false);
+      } else {
+        try {
+          const payload = name === "email" ? { email: value } : { username: value };
+          const res = await API.post("/exist", payload);
+          if (name === "email") setEmail(Boolean(res.data.emailExists));
+          else setUser(Boolean(res.data.usernameExists));
+        } catch (err) {
+          console.error("Exist check failed", err);
+        }
+      }
+    }
+
+    setForm({ ...form, [name]: value });
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
     try {
-      // Call backend to send OTP
-      await API.post("/verify", {
-        firstname: form.firstname,
-        email: form.email,
-      });
+      if (step === "email"){
+            try{
+              await API.post("/verify", {
+                Mode: true, // signup mode
+                firstname: form.firstname,
+                email: form.email,
+              });
+              setStep("signup");
+            } catch(err){
+              console.log("otp sent fail")
+            }
+
+        
+      } else if (step === "signup"){
+          
+            try{
+              const res = await API.post("/signup", {
+                firstname: form.firstname,
+                lastname: form.lastname,
+                username: form.username,
+                email: form.email,
+                password: form.password,
+                otp: form.otp
+              });
+
+              // persist token and set axios default header for immediate auth
+              if (res.data?.token) {
+                localStorage.setItem("token", res.data.token);
+                API.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+                navigate("/");
+                window.location.reload();
+              }
+
+            } catch (err) {
+              console.log(err);
+              setMessage(err.response?.data?.message || 'Signup failed');
+            }
+
+      }
+      
 
       // Save user details temporarily (so verify page can access them)
-      localStorage.setItem("pendingSignup", JSON.stringify(form));
+      // localStorage.setItem("pendingSignup", JSON.stringify(form));
 
-      setMessage("OTP sent successfully ✅");
-      navigate("/verify"); // go to verification page
+      // setMessage("OTP sent successfully ✅");
+   
+      // navigate("/verify"); // go to verification page
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Error during signup");
@@ -43,13 +105,13 @@ function Signup() {
 
 
 return (
-  <div className=" flex overflow-clip w-full h-screen  lg:p-0 p-2">
+  <div className=" flex w-full lg:h-screen h-fit ">
     {/* Left Side - Signup Form */}
     <div className="lg:w-1/2 w-full flex flex-col justify-center items-center bg-[#131313] text-white ">
 
       {/* Form Section */}
       <div className="w-full max-w-md pt-10">
-        <h2 className="text-3xl font-bold mb-2">Create Account</h2>
+        <h2 className="text-3xl font-bold mb-2">Create an account</h2>
         <p className="mb-6 text-gray-400">
           Already have an account?{" "}
           <span
@@ -61,12 +123,16 @@ return (
         </p>
 
         <form onSubmit={handleSignup} className="flex flex-col gap-2 items-center w-[95vmin] lg:w-auto">
-          <input
+          {step === "email" && (
+            <>
+
+              <input
             name="firstname"
             placeholder="First Name"
             value={form.firstname}
             onChange={handleChange}
             required
+            autoComplete="off"
             className="p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <input
@@ -75,25 +141,46 @@ return (
             value={form.lastname}
             onChange={handleChange}
             required
+            autoComplete="off"
             className="p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
-          <input
-            name="username"
-            placeholder="Username"
-            value={form.username}
-            onChange={handleChange}
-            required
-            className="p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+          <div className="w-full flex items-center gap-2">
+            <input
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              required
+              autoComplete="off"
+              className="flex-1 p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            {form.username.trim() !== "" && (
+              <img
+                src={!user ? checkIcon : uncheckIcon}
+                alt={!user ? "available" : "taken"}
+                className="w-4 h-4 absolute  ml-[420px] mb-[15px] "
+              />
+            )}
+          </div>
+          <div className="w-full flex items-center gap-2">
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              autoComplete="off"
+              className="flex-1 p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            {form.email.trim() !== "" && (
+              <img
+                src={!email ? checkIcon : uncheckIcon}
+                alt={!email ? "available" : "taken"}
+                className="w-4 h-4 absolute  ml-[420px] mb-[15px] "
+              />
+            )}
+          </div>
           <input
             name="password"
             type="password"
@@ -101,6 +188,7 @@ return (
             value={form.password}
             onChange={handleChange}
             required
+            autoComplete="off"
             className="p-3 rounded-md bg-[#1f1f1f] border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
@@ -110,6 +198,35 @@ return (
           >
             Sign Up
           </button>
+          {message && <p className="mt-2 text-sm text-red-400">{message}</p>}
+
+            </>
+          )}
+           {step === "signup" && (
+              <>
+                <input
+                  name="otp"
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={form.otp}
+                  autoComplete="off"
+                  onChange={handleChange}
+                  required
+                  className="p-3 rounded-lg bg-[#1f1f1f] border border-gray-600 
+                             focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                  <h1 className='text-red-500'>
+                {message}
+             </h1>
+                <button
+                  type="submit"
+                  className="mt-4 p-3 w-full rounded-full bg-green-600 
+                             hover:bg-green-500 font-semibold transition"
+                >
+                  Verify OTP
+                </button>
+              </>
+            )}
         </form>
 
       </div>

@@ -12,6 +12,7 @@ const Profile = () => {
         const res = await API.get(`/me`);
         setUser(res.data);
       } catch (err) {
+        localStorage.removeItem("token");
         setUser({ error: "Not Authorized" });
       }
     };
