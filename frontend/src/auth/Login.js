@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
+import { doSignInWithGoogle  } from "../firebase/auth";
+import { useAuth } from "../contexts/authContext";
 
 const Login = () => {
   const [ check , setCheck ] = useState(false);
+  const { currentUser } = useAuth();
+  const [isSignedIn , setIsSignedIn ] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -16,7 +20,19 @@ const Login = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  
+const onGoogleSignIn = async (e) => {
+    e.preventDefault();
+    if (!isSignedIn) {
+      setIsSignedIn(true);
+      try {
+        await doSignInWithGoogle();
+      } catch (err) {
+        setIsSignedIn(false);
+        console.log("Google sign in error");
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     
     e.preventDefault();
@@ -102,6 +118,12 @@ return (
             >
               Login
             </button>
+            <button
+            className="mt-4 p-3 w-full rounded-full bg-green-600 hover:bg-green-500 font-semibold transition"
+
+         onClick={(e) => {onGoogleSignIn(e)} }>
+          Google
+          </button>
           </form>
         </div>
       </div>

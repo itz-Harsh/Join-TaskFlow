@@ -47,9 +47,10 @@ router.post("/forgot", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
     if (!email || !newPassword) {
-      return res.status(400).json({ message: "Email and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and new password are required" });
     }
-
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -74,9 +75,7 @@ router.post("/forgot", async (req, res) => {
       token,
       user: { id: user._id, email: user.email, username: user.username },
     });
-    }
-    
-   catch (err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update Password" });
   }
@@ -86,9 +85,10 @@ router.post("/forgot", async (req, res) => {
 router.post("/verify", async (req, res) => {
   // Mode: true => signup flow, false => forgot-password flow
   try {
-  const rawMode = req.body.Mode;
-  // Default to signup mode if Mode not provided. Accept boolean or string ('true'/'false').
-  const Mode = rawMode === undefined ? true : (rawMode === true || rawMode === 'true');
+    const rawMode = req.body.Mode;
+    // Default to signup mode if Mode not provided. Accept boolean or string ('true'/'false').
+    const Mode =
+      rawMode === undefined ? true : rawMode === true || rawMode === "true";
 
     const email = req.body.email;
     if (!email) return res.status(400).json({ message: "Email is required" });
@@ -124,13 +124,16 @@ router.post("/verify", async (req, res) => {
 router.post("/check-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required" });
+    if (!email || !otp)
+      return res.status(400).json({ message: "Email and OTP are required" });
 
     const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) return res.status(400).json({ message: "OTP not found" });
 
-    if (otpRecord.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
-    if (Date.now() > otpRecord.otpExpire) return res.status(400).json({ message: "OTP expired" });
+    if (otpRecord.otp !== otp)
+      return res.status(400).json({ message: "Invalid OTP" });
+    if (Date.now() > otpRecord.otpExpire)
+      return res.status(400).json({ message: "OTP expired" });
 
     return res.json({ message: "OTP valid" });
   } catch (err) {
@@ -142,14 +145,14 @@ router.post("/check-otp", async (req, res) => {
 // ===== Signup =====
 router.post("/signup", async (req, res) => {
   try {
-    const { firstname, lastname, username, email, password, otp } = req.body;
+    const { firstname, lastname, email, password, otp } = req.body;
 
     if (!otp || otp.trim() === "")
       return res.status(400).json({ message: "OTP is required" });
 
     const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) return res.status(400).json({ message: "OTP not found" });
-  if (otpRecord.otp !== otp || Date.now() > otpRecord.otpExpire)
+    if (otpRecord.otp !== otp || Date.now() > otpRecord.otpExpire)
       return res.status(400).json({ message: "Invalid or expired OTP" });
 
     const existingUser = await User.findOne({ email });
@@ -159,10 +162,24 @@ router.post("/signup", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    let baseUsername = firstname.toLowerCase() + lastname.toLowerCase();
+    let Username = baseUsername;
+    let isUnique = false;
+
+    while (!isUnique) {
+      const existingUser = await User.findOne({ username: Username });
+
+      if (!existingUser) {
+        isUnique = true; 
+      } else {
+        Username = baseUsername + Math.floor(Math.random() * 500);
+      }
+    }
+
     const newUser = new User({
       firstname,
       lastname,
-      username,
+      username: Username,
       email,
       password: hashedPassword,
     });
@@ -224,22 +241,62 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-
-
-
 router.post("/exist", async (req, res) => {
   try {
-    const { email, username } = req.body;
+    const { email } = req.body;
 
     const emailExists = email ? await User.exists({ email }) : false;
-    const usernameExists = username ? await User.exists({ username }) : false;
 
-    return res.json({ emailExists: Boolean(emailExists), usernameExists: Boolean(usernameExists) });
+    return res.json({ emailExists: Boolean(emailExists) });
   } catch (e) {
     console.error("Error checking existence:", e);
     return res.status(500).json({ message: "Error checking existence" });
   }
 });
+
+router.post("/google-signin" , async (req ,res ) => {
+  try {
+    const { email , firstname ="" , lastname = "" } = req.body;
+    let baseUsername = firstname.toLowerCase() + lastname.toLowerCase();
+    let Username = baseUsername;
+    let isUnique = false;
+
+    while (!isUnique) {
+      const existingUser = await User.findOne({ username: Username });
+
+      if (!existingUser) {
+        isUnique = true; 
+      } else {
+        Username = baseUsername + Math.floor(Math.random() * 500);
+      }
+    }
+    let user = await User.findOne({ email });
+    if (!user) {
+      const newUser = new User({
+        firstname,
+        lastname,
+        username: Username,
+        email,
+        password: "GOOGLE_AUTH_NO_PASSWORD",
+      });
+      user = await newUser.save();
+    }
+
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    return res.json({
+      message: "Google sign-in successful",
+      token,
+      user: { id: user._id, username: user.username, email: user.email },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Google DB register fail" });
+  }
+}); 
 
 
 export default router;

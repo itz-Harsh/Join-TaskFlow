@@ -1,8 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
+import { useNavigate } from "react-router-dom";
 const Home = () => {
   const navigate = useNavigate();
+
   const isAuthenticate = !!localStorage.getItem("token");
   const handleLogin = () => {
     navigate("/login");
@@ -10,12 +11,13 @@ const Home = () => {
   const handleSignup = () => {
     navigate("/signup");
   };
+
   return (
     <>
       {isAuthenticate ? (
-        <div className=" w-full h-[100vh] flex justify-center items-center text-4xl font-bold bg-[#131313] ">
-          Welcome to TaskFlow
-        </div>
+        <>
+        
+        </>
       ) : (
         <div className="w-full h-[100vh] flex flex-col justify-center items-center font-bold bg-[#131313] gap-5">
           <div className="w-fit text-center space-y-6 px-4">
