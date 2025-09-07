@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, {  useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
 import { doSignInWithGoogle  } from "../firebase/auth";
-import { useAuth } from "../contexts/authContext";
 
 const Login = () => {
-  const [ check , setCheck ] = useState(false);
-  const { currentUser } = useAuth();
+  const [ setCheck ] = useState(false);
+
   const [isSignedIn , setIsSignedIn ] = useState(false);
   const [form, setForm] = useState({
     email: "",

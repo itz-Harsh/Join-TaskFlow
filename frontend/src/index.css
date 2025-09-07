@@ -3,6 +3,38 @@
 @tailwind utilities;
 
  
+
+
+/* App.css */
+/* App.css */
+.App {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+  
+}
+
+
+
+
 /* Reset and general styling */
 * {
     margin: 0;

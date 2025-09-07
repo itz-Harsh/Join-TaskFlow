@@ -3,13 +3,81 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
-
+import passport from "passport";
+import { Strategy as GitHubStrategy } from "passport-github2";
 import User from "../models/User.js";
 import Otp from "../models/otp.js";
 import auth from "../middleware/auth.js";
 
 dotenv.config();
 const router = express.Router();
+
+
+// --- Passport GitHub Strategy ---
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: process.env.CALLBACKURL
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await User.findOne({
+      $or: [
+        { githubId: profile.id },
+        { email: profile.emails?.[0]?.value }
+      ]
+    });
+    // console.log(profile);
+    if (!user) {
+      user = await User.create({
+        source: "github",
+        githubId: profile.id,
+        username: profile.username,
+        firstname: profile.displayName ? profile.displayName.split(" ")[0] : username,
+        lastname: profile.displayName ? profile.displayName.split(" ")[1] : " " ,
+        email: profile.emails?.[0]?.value || null,
+        password: "GITHUB_AUTH_NO_PASSWORD",
+      });
+    } else {
+      if (!user.githubId) {
+        user.githubId = profile.id;
+        await user.save();
+      }
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => done(null, user));
+});
+
+
+// --- GitHub Login Routes ---
+router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
+
+router.get("/github/callback",
+  passport.authenticate("github", { failureRedirect: process.env.F_URL , session: false }),
+  async (req, res) => {
+    try {
+      // Create JWT instead of session
+      const token = jwt.sign(
+        { id: req.user._id, email: req.user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      // Redirect with token (e.g., via query param)
+      res.redirect(`${process.env.F_URL}oauth-success?token=${token}`);
+    } catch (err) {
+      console.error("JWT creation failed:", err);
+      res.redirect(`${process.env.F_URL}`);
+    }
+  }
+);
+
 
 // ===== Mail Helper =====
 const SendMail = async (firstname, email, otp) => {
@@ -177,6 +245,7 @@ router.post("/signup", async (req, res) => {
     }
 
     const newUser = new User({
+      source: "email",
       firstname,
       lastname,
       username: Username,
@@ -211,7 +280,7 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email , source: "email" });
     if (!user) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -273,6 +342,7 @@ router.post("/google-signin" , async (req ,res ) => {
     let user = await User.findOne({ email });
     if (!user) {
       const newUser = new User({
+        source: "google",
         firstname,
         lastname,
         username: Username,

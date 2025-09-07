@@ -12,12 +12,17 @@ import Forget from "./auth/Forget";
 import { useAuth } from "./contexts/authContext";
 import API from "./api";
 import { useEffect } from "react";
+import OAuthSuccess from "./pages/OAuthSuccess";
+import { checkGoogleRedirectResult } from "./firebase/auth";
 
 function App() {
   const { currentUser } = useAuth();
 
   // When Firebase currentUser becomes available, obtain an ID token and inform backend
+  // console.log(currentUser);
   useEffect(() => {
+
+    checkGoogleRedirectResult();
     if (!currentUser) return;
 
     const syncGoogleUser = async () => {
@@ -45,9 +50,8 @@ function App() {
   }, [currentUser]);
 
   // Boolean for authentication
-  const isAuthenticate = !!localStorage.getItem("token");
+  const isAuthenticate = !!localStorage.getItem("token") 
 
-  console.log(currentUser);
 
   return (
     <Router>
@@ -75,8 +79,10 @@ function App() {
 
         <Route
           path="/profile"
-          element={isAuthenticate ? <Profile /> : <Navigate to="/login" />}
+          element={isAuthenticate ? <Profile /> : <Navigate to="/" />}
         />
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
+
       </Routes>
     </Router>
   );

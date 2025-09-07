@@ -2,8 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 
-// Import routes
 import authRoutes from "./routes/auth.js";
+import githubAuth from "./routes/auth.js";
 
 // Import MongoDB connection
 import connectDB from "./config/db.js";
@@ -21,6 +21,8 @@ app.use(cors()); // Enable CORS for frontend requests
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.use("/auth", githubAuth);
 
 // Health check route
 app.get("/", (req, res) => {

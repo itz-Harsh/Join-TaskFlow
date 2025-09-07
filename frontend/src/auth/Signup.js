@@ -3,13 +3,11 @@ import API from "../api";
 import {  useNavigate } from "react-router-dom";
 import checkIcon from "../assets/check.png";
 import uncheckIcon from "../assets/uncheck.png";
-import { doSignInWithGoogle } from "../firebase/auth";
-import { useAuth } from "../contexts/authContext";
+
 
 function Signup() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+
   const [email, setEmail] = useState(false);
 
   const [step, setStep] = useState("email");
@@ -88,18 +86,6 @@ function Signup() {
     }
   };
 
-const onGoogleSignIn = async (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      setIsSignedIn(true);
-      try {
-        await doSignInWithGoogle();
-      } catch (err) {
-        setIsSignedIn(false);
-        console.log("Google sign in error");
-      }
-    }
-  };
 
   const handleNavigate = () => {
     navigate("/login");
@@ -184,9 +170,7 @@ const onGoogleSignIn = async (e) => {
                 </button>
                 <button
                   className="mt-4 p-3 w-full rounded-full bg-green-600 hover:bg-green-500 font-semibold transition"
-                  onClick={(e) => {
-                    onGoogleSignIn(e);
-                  }}
+                  
                 >
                   Google
                 </button>
