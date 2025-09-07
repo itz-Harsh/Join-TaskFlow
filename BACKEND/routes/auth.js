@@ -70,7 +70,7 @@ router.get("/github/callback",
       );
 
       // Redirect with token (e.g., via query param)
-      res.redirect(`${process.env.F_URL}/oauth-success?token=${token}`);
+      res.redirect(`${process.env.F_URL}oauth-success?token=${token}`);
     } catch (err) {
       console.error("JWT creation failed:", err);
       res.redirect(`${process.env.F_URL}`);
