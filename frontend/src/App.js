@@ -16,32 +16,34 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 import { checkGoogleRedirectResult } from "./firebase/auth";
 
 function App() {
-  const { currentUser, setCurrentUser } = useAuth(); // make sure your context exposes setCurrentUser
-
+  const { setCurrentUser } = useAuth(); // make sure your context exposes setCurrentUser
+  
 
   useEffect(() => {
-    
     const handleRedirect = async () => {
       const user = await checkGoogleRedirectResult();
       if (user) {
         setCurrentUser(user);
-        console.log(currentUser)
-        // sync with backend
         try {
-          const backendToken = await user.getIdToken();
-          await API.post("/google-signin", {
+          const res = await API.post("/google-signin", {
             email: user.email,
             firstname: (user.displayName || "").split(" ")[0] || `guest${Math.floor(Math.random() * 5000)}`,
             lastname: (user.displayName || "").split(" ")[1] || "",
           });
-          localStorage.setItem("token", backendToken);
+
+          const backendToken = res?.data?.token;
+          if (backendToken) {
+            localStorage.setItem("token", backendToken);
+            API.defaults.headers.common["Authorization"] = `Bearer ${backendToken}`;
+          }
         } catch (err) {
-          console.log("Not able to register in DB");
+          console.log("Not able to register in DB", err?.response?.data || err.message);
         }
       }
     };
+
     handleRedirect();
-  }, [currentUser , setCurrentUser]);
+  }, [setCurrentUser]);
 
   const isAuthenticate = !!localStorage.getItem("token");
 
