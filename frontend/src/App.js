@@ -16,71 +16,43 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 import { checkGoogleRedirectResult } from "./firebase/auth";
 
 function App() {
-  const { currentUser } = useAuth();
+  const { currentUser, setCurrentUser } = useAuth(); // make sure your context exposes setCurrentUser
 
-  // When Firebase currentUser becomes available, obtain an ID token and inform backend
-  // console.log(currentUser);
+
   useEffect(() => {
-
-    checkGoogleRedirectResult();
-    if (!currentUser) return;
-
-    const syncGoogleUser = async () => {
-      try {
-        const backendToken = currentUser.accessToken;
-
-        await API.post("/google-signin", {
-          email: currentUser.email,
-          firstname:
-            (currentUser.displayName || "").split(" ")[0] ||
-            `guest${Math.floor(Math.random() * 5000)}`,
-          lastname: (currentUser.displayName || "").split(" ")[1] || "",
-        });
-        if (backendToken) {
+    
+    const handleRedirect = async () => {
+      const user = await checkGoogleRedirectResult();
+      if (user) {
+        setCurrentUser(user);
+        console.log(currentUser)
+        // sync with backend
+        try {
+          const backendToken = await user.getIdToken();
+          await API.post("/google-signin", {
+            email: user.email,
+            firstname: (user.displayName || "").split(" ")[0] || `guest${Math.floor(Math.random() * 5000)}`,
+            lastname: (user.displayName || "").split(" ")[1] || "",
+          });
           localStorage.setItem("token", backendToken);
+        } catch (err) {
+          console.log("Not able to register in DB");
         }
-      } catch (err) {
-        console.log(
-          "Not able to register in DB"
-        );
       }
     };
+    handleRedirect();
+  }, [currentUser , setCurrentUser]);
 
-    syncGoogleUser();
-  }, [currentUser]);
-
-  // Boolean for authentication
-  const isAuthenticate = !!localStorage.getItem("token") 
-
+  const isAuthenticate = !!localStorage.getItem("token");
 
   return (
     <Router>
-      {/* <nav>
-        <Link to="/signup">Signup</Link>
-        <Link to="/login">Login</Link>
-        <Link to="/profile">Profile</Link>
-      </nav> */}
-
       <Routes>
-        <Route
-          path={"/signup"}
-          element={!isAuthenticate ? <Signup /> : <Navigate to="/" />}
-        />
-
-        <Route
-          path="/login"
-          element={!isAuthenticate ? <Login /> : <Navigate to="/" />}
-        />
-        <Route
-          path="/forget"
-          element={!isAuthenticate ? <Forget /> : <Navigate to="/" />}
-        />
+        <Route path={"/signup"} element={!isAuthenticate ? <Signup /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isAuthenticate ? <Login /> : <Navigate to="/" />} />
+        <Route path="/forget" element={!isAuthenticate ? <Forget /> : <Navigate to="/" />} />
         <Route path="/" element={<Home />} />
-
-        <Route
-          path="/profile"
-          element={isAuthenticate ? <Profile /> : <Navigate to="/" />}
-        />
+        <Route path="/profile" element={isAuthenticate ? <Profile /> : <Navigate to="/" />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
 
       </Routes>

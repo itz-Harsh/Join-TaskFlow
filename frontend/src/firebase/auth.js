@@ -1,12 +1,18 @@
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, signInWithPopup } from "firebase/auth";
 import { auth } from "./firebase";
 
 const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" }); // always show chooser
 
-// To start redirect sign-in
-export const doSignInWithGoogle = () => signInWithRedirect(auth, provider);
-
-// To handle the result after redirect
+export const doSignInWithGoogle = () => 
+  {
+    try{
+    signInWithPopup(auth , provider);
+    // signInWithRedirect(auth, provider);
+  } catch (err) {
+    console.log("SOMETHING WRONG!!!!!!!"); 
+  }
+}
 export const checkGoogleRedirectResult = async () => {
   try {
     const result = await getRedirectResult(auth);
@@ -14,6 +20,7 @@ export const checkGoogleRedirectResult = async () => {
       const user = result.user;
       const token = await user.getIdToken();
       localStorage.setItem("token", token);
+      console.log("✅ Redirect sign-in success:", user.email);
       return user;
     }
     return null;
@@ -22,6 +29,5 @@ export const checkGoogleRedirectResult = async () => {
     return null;
   }
 };
-
 
 export const doSignOut = () => signOut(auth);

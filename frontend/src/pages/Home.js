@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { useNavigate } from "react-router-dom";
 import Galaxy from "../components/Galaxy";
-import { checkGoogleRedirectResult, doSignInWithGoogle } from "../firebase/auth";
-
+import {
+  // checkGoogleRedirectResult,
+  doSignInWithGoogle,
+} from "../firebase/auth";
+import { getRedirectResult } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  // const [isSignedIn, setIsSignedIn] = useState(false);
 
   const isAuthenticate = !!localStorage.getItem("token");
   const handleLogin = () => {
@@ -16,26 +20,26 @@ const Home = () => {
   const handleSignup = () => {
     navigate("/signup");
   };
-const onGoogleSignIn = async (e) => {
+ const onGoogleSignIn = async (e) => {
   e.preventDefault();
-  try {
-    await doSignInWithGoogle();
-  } catch (err) {
-    console.error("Google sign in error", err);
-  }
+  await doSignInWithGoogle();
 };
 
-useEffect(() => {
-  const handleRedirect = async () => {
-    await checkGoogleRedirectResult();
-    // if (user) {
-    //   // User is signed in
-    //   navigate("/"); // redirect to dashboard
-    // }
-  };
-  handleRedirect();
-}, []);
 
+  useEffect(() => {
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result) {
+        const user = result.user;
+        console.log("Signed in user:", user);
+      }else{
+        console.log("NOooo");
+      }
+    })
+    .catch((error) => {
+      console.error("Redirect error:", error);
+    });
+}, []);
 
   return (
     <>
@@ -104,7 +108,11 @@ useEffect(() => {
               }
               className="w-full p-2 flex items-center justify-center h-10 text-black text-[15px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95"
             >
-              <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/vector-icons/github-fill-qf4esp67hgil1yb2t4kbh.png/github-fill-vuouq0ozezpemvb5gwnatr.png?_a=DATAg1AAZAA0" alt="" className="w-6 h-6 mr-2"/>
+              <img
+                src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/vector-icons/github-fill-qf4esp67hgil1yb2t4kbh.png/github-fill-vuouq0ozezpemvb5gwnatr.png?_a=DATAg1AAZAA0"
+                alt=""
+                className="w-6 h-6 mr-2"
+              />
               <p className="w-fit font-semibold ">Continue with GitHub</p>
             </button>
           </div>
