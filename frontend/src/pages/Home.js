@@ -100,7 +100,7 @@ useEffect(() => {
             </button>
             <button
               onClick={() =>
-                (window.location.href = `${process.env.URL}/auth/github`)
+                (window.location.href = `https://to-do-list-1d7v.onrender.com/auth/github`)
               }
               className="w-full p-2 flex items-center justify-center h-10 text-black text-[15px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95"
             >
