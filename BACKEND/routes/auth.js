@@ -343,6 +343,7 @@ router.post("/google-signin" , async (req ,res ) => {
     if (!user) {
       const newUser = new User({
         source: "google",
+        githubId: null,
         firstname,
         lastname,
         username: Username,

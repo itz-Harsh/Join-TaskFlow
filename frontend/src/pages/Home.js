@@ -1,17 +1,19 @@
-import React, { useEffect } from "react";
+import React, {  useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import Galaxy from "../components/Galaxy";
 import {
-  // checkGoogleRedirectResult,
+
   doSignInWithGoogle,
+  // SignInWithGoogle,
+
 } from "../firebase/auth";
-import { getRedirectResult } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+// import { getRedirectResult } from "firebase/auth";
+// import { auth } from "../firebase/firebase";
 
 const Home = () => {
   const navigate = useNavigate();
-  // const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const isAuthenticate = !!localStorage.getItem("token");
   const handleLogin = () => {
@@ -20,26 +22,20 @@ const Home = () => {
   const handleSignup = () => {
     navigate("/signup");
   };
- const onGoogleSignIn = async (e) => {
-  e.preventDefault();
-  await doSignInWithGoogle();
-};
 
-
-  useEffect(() => {
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result) {
-        const user = result.user;
-        console.log("Signed in user:", user);
-      }else{
-        console.log("NOooo");
+const onGoogleSignIn = async (e) => {
+    e.preventDefault();
+    if (!isSignedIn) {
+      setIsSignedIn(true);
+      try {
+        await doSignInWithGoogle();
+      } catch (err) {
+        setIsSignedIn(false);
+        console.log("Google sign in error");
       }
-    })
-    .catch((error) => {
-      console.error("Redirect error:", error);
-    });
-}, []);
+    }
+  };
+
 
   return (
     <>

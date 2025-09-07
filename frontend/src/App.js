@@ -13,39 +13,45 @@ import { useAuth } from "./contexts/authContext";
 import API from "./api";
 import { useEffect } from "react";
 import OAuthSuccess from "./pages/OAuthSuccess";
-import { checkGoogleRedirectResult } from "./firebase/auth";
+// import { checkGoogleRedirectResult } from "./firebase/auth";
 
 function App() {
-  const { setCurrentUser } = useAuth(); // make sure your context exposes setCurrentUser
-  
+  const { currentUser } = useAuth();
 
+  // When Firebase currentUser becomes available, obtain an ID token and inform backend
   useEffect(() => {
-    const handleRedirect = async () => {
-      const user = await checkGoogleRedirectResult();
-      if (user) {
-        setCurrentUser(user);
-        try {
-          const res = await API.post("/google-signin", {
-            email: user.email,
-            firstname: (user.displayName || "").split(" ")[0] || `guest${Math.floor(Math.random() * 5000)}`,
-            lastname: (user.displayName || "").split(" ")[1] || "",
-          });
+    if (!currentUser) return;
 
-          const backendToken = res?.data?.token;
-          if (backendToken) {
-            localStorage.setItem("token", backendToken);
-            API.defaults.headers.common["Authorization"] = `Bearer ${backendToken}`;
-          }
-        } catch (err) {
-          console.log("Not able to register in DB", err?.response?.data || err.message);
+    const syncGoogleUser = async () => {
+      
+  console.log(currentUser);
+  const backendToken = currentUser.accessToken;
+  if (backendToken) {
+          localStorage.setItem("token", backendToken);
         }
+      try {
+
+        await API.post("/google-signin", {
+          email: currentUser.email,
+          firstname:
+            (currentUser.displayName || "").split(" ")[0] ||
+            `guest${Math.floor(Math.random() * 5000)}`,
+          lastname: (currentUser.displayName || "").split(" ")[1] || "",
+        });
+        
+      } catch (err) {
+        console.log(
+          "Not able to register in DB"
+        );
       }
     };
 
-    handleRedirect();
-  }, [setCurrentUser]);
+    syncGoogleUser();
+  }, [currentUser]);
 
+  // Boolean for authentication
   const isAuthenticate = !!localStorage.getItem("token");
+
 
   return (
     <Router>
