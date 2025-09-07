@@ -27,11 +27,11 @@ const onGoogleSignIn = async (e) => {
 
 useEffect(() => {
   const handleRedirect = async () => {
-    const user = await checkGoogleRedirectResult();
-    if (user) {
-      // User is signed in
-      navigate("/"); // redirect to dashboard
-    }
+    await checkGoogleRedirectResult();
+    // if (user) {
+    //   // User is signed in
+    //   navigate("/"); // redirect to dashboard
+    // }
   };
   handleRedirect();
 }, []);
