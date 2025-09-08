@@ -20,26 +20,22 @@ passport.use(new GitHubStrategy({
   callbackURL: process.env.CALLBACKURL
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    let user = await User.findOne({
-      $or: [
-        { githubId: profile.id },
-        { email: profile.emails?.[0]?.value }
-      ]
-    });
+    let user = await User.findOne({ id: profile.id });
     // console.log(profile);
     if (!user) {
       user = await User.create({
         source: "github",
-        githubId: profile.id,
+        id: profile.id,
         username: profile.username,
         firstname: profile.displayName ? profile.displayName.split(" ")[0] : username,
         lastname: profile.displayName ? profile.displayName.split(" ")[1] : " " ,
-        email: profile.emails?.[0]?.value || null,
+        email: profile.emails?.[0]?.value,
         password: "GITHUB_AUTH_NO_PASSWORD",
+        photoUrl: profile.avatar_url
       });
     } else {
-      if (!user.githubId) {
-        user.githubId = profile.id;
+      if (!user.id) {
+        user.id = profile.id;
         await user.save();
       }
     }
@@ -323,51 +319,55 @@ router.post("/exist", async (req, res) => {
   }
 });
 
-router.post("/google-signin" , async (req ,res ) => {
+router.post("/google-signin", async (req, res) => {
   try {
-    const { email , firstname ="" , lastname = "" } = req.body;
-    let baseUsername = firstname.toLowerCase() + lastname.toLowerCase();
-    let Username = baseUsername;
-    let isUnique = false;
+    const { email, firstname, lastname, userId, photoUrl } = req.body;
 
+    // Check if user already exists by Google userId
+    let user = await User.findOne({ id: userId });
+    if (user) {
+      return res.status(200).json({ message: "User already exists", user });
+    }
+
+    // Create base username
+    let baseUsername = (firstname + lastname).toLowerCase();
+    let Username = baseUsername;
+
+    // Make sure username is unique
+    let isUnique = false;
     while (!isUnique) {
       const existingUser = await User.findOne({ username: Username });
-
       if (!existingUser) {
-        isUnique = true; 
+        isUnique = true;
       } else {
         Username = baseUsername + Math.floor(Math.random() * 500);
       }
     }
-    let user = await User.findOne({ email });
-    if (!user) {
-      const newUser = new User({
-        source: "google",
-        githubId: null,
-        firstname,
-        lastname,
-        username: Username,
-        email,
-        password: "GOOGLE_AUTH_NO_PASSWORD",
-      });
-      user = await newUser.save();
-    }
 
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+    // Create and save new user
+    const newUser = new User({
+      source: "google",
+      id: userId,
+      firstname,
+      lastname,
+      username: Username,
+      email,
+      password: "GOOGLE_AUTH_NO_PASSWORD",
+      photoUrl,
     });
+
+    user = await newUser.save();
 
     return res.json({
       message: "Google sign-in successful",
-      token,
-      user: { id: user._id, username: user.username, email: user.email },
+      user,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Google DB register fail" });
   }
-}); 
+});
+ 
 
 
 export default router;

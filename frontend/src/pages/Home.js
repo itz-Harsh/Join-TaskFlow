@@ -29,6 +29,7 @@ const onGoogleSignIn = async (e) => {
       setIsSignedIn(true);
       try {
         await doSignInWithGoogle();
+        window.location.reload();
       } catch (err) {
         setIsSignedIn(false);
         console.log("Google sign in error");

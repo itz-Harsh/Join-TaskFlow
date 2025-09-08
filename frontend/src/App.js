@@ -18,13 +18,11 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 function App() {
   const { currentUser } = useAuth();
 
-  // When Firebase currentUser becomes available, obtain an ID token and inform backend
   useEffect(() => {
     if (!currentUser) return;
 
     const syncGoogleUser = async () => {
       
-  console.log(currentUser);
   const backendToken = currentUser.accessToken;
   if (backendToken) {
           localStorage.setItem("token", backendToken);
@@ -33,12 +31,11 @@ function App() {
 
         await API.post("/google-signin", {
           email: currentUser.email,
-          firstname:
-            (currentUser.displayName || "").split(" ")[0] ||
-            `guest${Math.floor(Math.random() * 5000)}`,
-          lastname: (currentUser.displayName || "").split(" ")[1] || "",
+          firstname: (currentUser.displayName || "").split(" ")[0],
+          lastname: (currentUser.displayName || "").split(" ")[1] ,
+          userId: currentUser.uid,
+          photoUrl: currentUser.photoURL
         });
-        
       } catch (err) {
         console.log(
           "Not able to register in DB"
@@ -47,6 +44,7 @@ function App() {
     };
 
     syncGoogleUser();
+    
   }, [currentUser]);
 
   // Boolean for authentication
