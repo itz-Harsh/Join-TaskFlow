@@ -31,7 +31,7 @@ passport.use(new GitHubStrategy({
         lastname: profile.displayName ? profile.displayName.split(" ")[1] : " " ,
         email: profile.emails?.[0]?.value,
         password: "GITHUB_AUTH_NO_PASSWORD",
-        photoUrl: profile.avatar_url
+        photoUrl: profile.photos?.[0]?.value
       });
     } else {
       if (!user.id) {
