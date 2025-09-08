@@ -12,6 +12,7 @@
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "axios": "^1.11.0",
+    "dotenv": "^17.2.2",
     "firebase": "^12.2.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

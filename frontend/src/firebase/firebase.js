@@ -3,13 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyApybzmobmi5AW8UJ1uOMXt7ybWhJZxKVI",
-  authDomain: "join-taskflow.firebaseapp.com",
-  projectId: "join-taskflow",
-  storageBucket: "join-taskflow.firebasestorage.app",
-  messagingSenderId: "1094805241887",
-  appId: "1:1094805241887:web:3efda198a43f494580552a",
-  measurementId: "G-QWVEPR9ZBK"
+  apiKey: process.env.REACT_APP_API_KEY,
+  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_APP_ID,
+  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
 

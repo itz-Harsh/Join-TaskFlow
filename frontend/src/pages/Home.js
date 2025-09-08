@@ -2,14 +2,7 @@ import React, {  useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import Galaxy from "../components/Galaxy";
-import {
-
-  doSignInWithGoogle,
-  // SignInWithGoogle,
-
-} from "../firebase/auth";
-// import { getRedirectResult } from "firebase/auth";
-// import { auth } from "../firebase/firebase";
+import {  doSignInWithGoogle } from "../firebase/auth";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -22,7 +15,9 @@ const Home = () => {
   const handleSignup = () => {
     navigate("/signup");
   };
-
+const handleP = () => {
+    navigate("/profile");
+  };
 const onGoogleSignIn = async (e) => {
     e.preventDefault();
     if (!isSignedIn) {
@@ -37,37 +32,45 @@ const onGoogleSignIn = async (e) => {
     }
   };
 
-
+ 
   return (
     <>
       {isAuthenticate ? (
         <>
-          <div className="w-full h-[100vh] flex flex-col justify-center items-center font-bold bg-black gap-5">
+          <div className="w-full overflow-clip h-[100vh] flex flex-col justify-center items-center font-bold bg-black gap-5">
             <Galaxy />
             <h1 className="absolute">Welcome</h1>
+            <button
+                onClick={handleP}
+                className="p-2 w-1/6 absolute mt-[20rem]  text-black text-[13px] h-fit rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95 font-semibold transition"
+              >
+                Profile
+              </button>
           </div>
         </>
       ) : (
-        <div className="w-full h-[100vh] flex flex-col justify-center items-center font-bold bg-black">
+        <div className="w-full overflow-clip h-[100vh]  flex flex-col justify-center items-center font-bold bg-black">
+          
           <Galaxy />
-          <div className="flex  flex-col gap-3 bg-transparent absolute z-2 ">
+          <h1 className="w-full text-center text-3xl mb-[25rem] absolute z-2">TaskFlow</h1>
+          <div className="flex w-[16rem]  flex-col gap-2 bg-transparent absolute z-2 ">
             <div className="flex gap-2 ">
               <button
                 onClick={handleSignup}
-                className="  p-2 w-[9rem] text-[15px] h-fit rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95 text-black  font-semibold transition"
+                className="  p-2 w-full text-[13px] h-fit rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95 text-black  font-semibold transition"
               >
                 Signup
               </button>
 
               <button
                 onClick={handleLogin}
-                className="p-2 w-[9rem] text-black text-[15px] h-fit rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95 font-semibold transition"
+                className="p-2 w-full text-black text-[13px] h-fit rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95 font-semibold transition"
               >
                 Login
               </button>
             </div>
             <button
-              className="gap-3 flex justify-center items-center p-2 w-full h-10 text-black text-[15px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95  transition"
+              className="gap-3 flex justify-center items-center p-2 w-full h-10 text-black text-[13px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95  transition"
               onClick={(e) => {
                 onGoogleSignIn(e);
               }}
@@ -101,9 +104,9 @@ const onGoogleSignIn = async (e) => {
             </button>
             <button
               onClick={() =>
-                (window.location.href = `https://to-do-list-1d7v.onrender.com/auth/github`)
+                (window.location.href = process.env.REACT_APP_GITHUB_CALLBACK)
               }
-              className="w-full p-2 flex items-center justify-center h-10 text-black text-[15px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95"
+              className="w-full p-2 flex items-center justify-center h-10 text-black text-[13px]  rounded-full bg-white hover:bg-[#e7e7e7] active:scale-95"
             >
               <img
                 src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/vector-icons/github-fill-qf4esp67hgil1yb2t4kbh.png/github-fill-vuouq0ozezpemvb5gwnatr.png?_a=DATAg1AAZAA0"
@@ -113,6 +116,7 @@ const onGoogleSignIn = async (e) => {
               <p className="w-fit font-semibold ">Continue with GitHub</p>
             </button>
           </div>
+          <h1 className="absolute bottom-5 text-xs text-gray-400 p-1 pl-10 pr-10  rounded-full border-[#1f1f1f] border-[0.01rem]"> Made with ❤️ by <a href="https://github.com/itz-harsh">Harsh</a> </h1>
         </div>
       )}
     </>

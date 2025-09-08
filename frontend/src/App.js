@@ -17,7 +17,7 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 
 function App() {
   const { currentUser } = useAuth();
-
+  // console.log(currentUser);
   useEffect(() => {
     if (!currentUser) return;
 
@@ -26,6 +26,7 @@ function App() {
   const backendToken = currentUser.accessToken;
   if (backendToken) {
           localStorage.setItem("token", backendToken);
+          localStorage.setItem("userId", currentUser.uid);
         }
       try {
 

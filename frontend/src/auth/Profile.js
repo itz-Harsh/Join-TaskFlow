@@ -8,12 +8,13 @@ const Profile = () => {
   const { currentUser } = useAuth();
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await API.get(`/me`);
         setUser(res.data);
+        console.log(res.data);
       } catch (err) {
         console.warn("Not authorized:", err);
       }
@@ -29,20 +30,22 @@ const Profile = () => {
       console.warn("Firebase signOut failed:", err);
     }
     localStorage.removeItem("token");
-    navigate("/login");
+    window.location.reload();
   };
 
   return (
-    <div className="flex h-screen bg-[#131313] text-white">
+    <div className="flex h-screen w-full  text-white absolute">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#1a1a1a] p-6 flex flex-col justify-between">
+      <aside className="w-[15rem] bg-[#0e0e0e] rounded-r-[4rem] p-4 flex flex-col justify-between shadow ">
         <div>
-          <h1 className="text-3xl font-bold mb-4 text-green-400 name">TaskFlow</h1>
-          <nav className="space-y-4">
+          <h1 className="text-2xl font-bold mb-7 text-red-400 name">TaskFlow</h1>
+          <nav className="flex items-center gap-4">
+            <img src={user?.photoUrl || currentUser?.photoURL } alt="Profile" className="w-[4rem] rounded-full mb-2" />
             <h1 className="block hover:text-green-400">
               {currentUser?.displayName || user?.firstname || "Guest"}
             </h1>
           </nav>
+          
         </div>
         <div className="space-y-2">
           <Link to="/settings" className="block hover:text-green-400">Settings</Link>
@@ -54,6 +57,8 @@ const Profile = () => {
           </button>
         </div>
       </aside>
+
+
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">

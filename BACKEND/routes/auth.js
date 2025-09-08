@@ -74,7 +74,6 @@ router.get("/github/callback",
   }
 );
 
-
 // ===== Mail Helper =====
 const SendMail = async (firstname, email, otp) => {
   const transporter = nodemailer.createTransport({
@@ -116,8 +115,8 @@ router.post("/forgot", async (req, res) => {
         .json({ message: "Email and new password are required" });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
+    const user = await User.findOne({ email: email , source: "email" });
+    if (!user && user.source !== "email") {
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -220,7 +219,8 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired OTP" });
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
+
+    if (existingUser && existingUser.source === "email")
       return res.status(400).json({ message: "User already exists" });
 
     const salt = await bcrypt.genSalt(10);
@@ -229,24 +229,29 @@ router.post("/signup", async (req, res) => {
     let baseUsername = firstname.toLowerCase() + lastname.toLowerCase();
     let Username = baseUsername;
     let isUnique = false;
+    let userId = lastname + Math.floor(1000 + Math.random() * 99291);
 
     while (!isUnique) {
+      
       const existingUser = await User.findOne({ username: Username });
-
-      if (!existingUser) {
+      const existingID = await User.findOne({ id: userId });
+      if (!existingUser && !existingID) {
         isUnique = true; 
       } else {
         Username = baseUsername + Math.floor(Math.random() * 500);
+        userId = lastname + Math.floor(1000 + Math.random() * 99291)
       }
     }
 
     const newUser = new User({
       source: "email",
+      id: userId,
       firstname,
       lastname,
       username: Username,
       email,
       password: hashedPassword,
+      photoUrl: "https://i.pinimg.com/736x/64/81/22/6481225432795d8cdf48f0f85800cf66.jpg",
     });
     await newUser.save();
 
@@ -293,12 +298,28 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ===== Protected Route =====
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-
+    console.log(user);
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -306,11 +327,34 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 router.post("/exist", async (req, res) => {
   try {
     const { email } = req.body;
+    const existUser = await User.find({ email });
+    const emailExists = false;
 
-    const emailExists = email ? await User.exists({ email }) : false;
+    for( let i = 0; i < existUser.length; i++ ){
+      if (existUser[i].source === "email") {
+        return res.json({ emailExists: true });
+      }
+    }
 
     return res.json({ emailExists: Boolean(emailExists) });
   } catch (e) {

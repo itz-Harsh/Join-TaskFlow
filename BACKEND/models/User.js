@@ -23,6 +23,7 @@ const UserSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    
     lastname: {
       type: String,
       required: true,
@@ -48,6 +49,15 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
   },
+
+
+
+
+
+
+
+
+
   {
     timestamps: true,
   }

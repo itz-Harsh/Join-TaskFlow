@@ -1,12 +1,10 @@
 import React, {  useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
-import { doSignInWithGoogle  } from "../firebase/auth";
+import Galaxy from "../components/Galaxy";
 
 const Login = () => {
-  const [ setCheck ] = useState(false);
-
-  const [isSignedIn , setIsSignedIn ] = useState(false);
+  const [check , setCheck ] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -19,18 +17,6 @@ const Login = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-const onGoogleSignIn = async (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      setIsSignedIn(true);
-      try {
-        await doSignInWithGoogle();
-      } catch (err) {
-        setIsSignedIn(false);
-        console.log("Google sign in error");
-      }
-    }
-  };
 
   const handleSubmit = async (e) => {
     
@@ -55,98 +41,90 @@ const onGoogleSignIn = async (e) => {
   };
 
 const checkBox = () => {
-  setCheck(document.querySelector(".checkbox").checked)
+  if(check){
+    setCheck(false);
+    return;
+  }
+  setCheck(true);
 }
 
 return (
-    <div className=" flex overflow-clip w-full h-screen  ">
-      {/* Left Side - Signup Form */}
-      <div className="lg:w-1/2 w-full flex flex-col justify-center items-center bg-[#131313] text-white ">
+    <div className=" flex justify-center items-center overflow-clip w-full h-screen bg-black  ">
+      <Galaxy />
+
         {/* Form Section */}
-        <div className="w-full max-w-md pt-10">
-          <h1 className="text-4xl font-bold mb-7 ">Login</h1>
-          <p className="mb-6 text-gray-400">
-            Don't have an account?{" "}
-            <span
-              className="text-green-400 hover:underline cursor-pointer"
-              onClick={handleNavigate}
-            >
-              Sign up
-            </span>
-          </p>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="p-3 rounded-lg bg-[#1f1f1f] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+      <div className="min-h-screen w-full flex items-center justify-center  text-white px-4 absolute">
+  <div className="w-full max-w-md flex flex-col items-center">
+    <h1 className="text-4xl font-bold mb-6">Login</h1>
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="p-3 rounded-lg bg-[#1f1f1f] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-            <div className="flex justify-between px-1">
-              <span className=" text-sm text-gray-400 w-[13rem] flex gap-2">
-                <input type="checkbox" className="w-fit accent-green-500 mt-[-.7rem] outline-none cursor-pointer checkbox" onChange={checkBox}  />
-                <p className="">Remember me</p>
-              </span>
+    <p className="mb-8 text-gray-400 text-sm">
+      Don't have an account?{" "}
+      <span
+        className="text-red-400 hover:underline cursor-pointer"
+        onClick={handleNavigate}
+      >
+        Sign up
+      </span>
+    </p>
 
-          
-                <p className="text-red-500 text-sm mb-2">{message}</p>
-              
-              <p
-                className="mb-6 text-end text-gray-400 hover:underline decoration-green-500 cursor-pointer "
-                onClick={handleforget}
-              >
-                Forget Password?{" "}
-              </p>
-            </div>
+    <form
+      onSubmit={handleSubmit}
+      className="flex w-full flex-col gap-4 items-center"
+    >
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={handleChange}
+        required
+        className="w-full p-3 px-4 rounded-full border border-gray-700 bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+      />
 
-            <button
-              type="submit"
-              className="mt-4 p-3 w-full rounded-full bg-green-600 hover:bg-green-500 font-semibold transition"
-            >
-              Login
-            </button>
-            <button
-            className="mt-4 p-3 w-full rounded-full bg-green-600 hover:bg-green-500 font-semibold transition"
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        value={form.password}
+        onChange={handleChange}
+        required
+        className="w-full p-3 px-4 rounded-full border border-gray-700 bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+      />
 
-         onClick={(e) => {onGoogleSignIn(e)} }>
-          Google
-          </button>
-          </form>
-        </div>
+      <div className="flex justify-between items-center w-full text-sm text-gray-400 px-2 mt-1">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            className="accent-red-400 w-4 h-4 cursor-pointer mb-0 .checkbox "
+            onChange={checkBox}
+          />
+          Remember me
+        </label>
+
+        <p
+          className="hover:underline decoration-red-500 cursor-pointer"
+          onClick={handleforget}
+        >
+          Forgot Password?
+        </p>
       </div>
 
-      {/* Right Side - Showcase / Info */}
-      <div className="hidden  w-1/2 lg:flex flex-col justify-center items-center bg-gradient-to-br from-[#0a0a0a] to-[#1f1f1f] text-white p-12">
-        <div className="max-w-md text-center">
-          <h1 className="text-4xl font-bold mb-4 text-green-400 name">
-            Join TaskFlow
-          </h1>
-          <p className="text-gray-400 mb-6">
-            Stay on top of your tasks with our powerful To-Do List app. Easily
-            add, prioritize, and track everything in one place — from daily
-            reminders to long-term goals.
-          </p>
-          <div className="bg-[#1f1f1f] p-6 rounded-lg shadow-xl border border-gray-800  hover:shadow-gray-800 ">
-            <p className="text-gray-500 mt-2 ">
-              With a clean interface and smart features, managing your time has
-              never been this simple. Focus on what truly matters while we
-              handle the rest
-            </p>
-          </div>
-        </div>
-      </div>
+      {message && (
+        <p className="text-red-500 text-sm w-full text-center mt-2">{message}</p>
+      )}
+
+      <button
+        type="submit"
+        className="mt-6 p-3 w-1/2 rounded-full text-lg font-semibold text-black bg-gradient-to-bl from-red-200 to-red-400 hover:opacity-90 transition-opacity"
+      >
+        Login
+      </button>
+    </form>
+  </div>
+</div>
+
+
+    
     </div>
   );
 };
